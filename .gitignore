@@ -1,0 +1,21 @@
+# Dependencies
+node_modules/
+**/node_modules/
+
+# Environment
+.env
+.env.*
+
+# Build output
+dist/
+build/
+
+# Test reports
+playwright-report/
+test-results/
+
+# Logs
+*.log
+
+# VS Code
+.vscode/

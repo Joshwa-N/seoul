@@ -1,0 +1,17 @@
+{
+  "name": "seoul-spice-e2e",
+  "version": "1.0.0",
+  "scripts": {
+    "test": "playwright test",
+    "test:headed": "playwright test --headed",
+    "test:report": "playwright show-report",
+    "test:api": "playwright test tests/api.spec.ts",
+    "test:store": "playwright test tests/store.spec.ts",
+    "test:admin": "playwright test tests/admin.spec.ts",
+    "test:checkout": "playwright test tests/checkout.spec.ts"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.42.0",
+    "typescript": "^5.0.0"
+  }
+}
