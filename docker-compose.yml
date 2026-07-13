@@ -1,0 +1,51 @@
+version: "3.9"
+
+services:
+  db:
+    image: postgres:18
+    container_name: seoul_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: seoul
+      POSTGRES_PASSWORD: qwer1234
+      POSTGRES_DB: seoul_postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U seoul -d seoul_postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  app:
+    build: .
+    container_name: seoul_app
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DB_USERNAME: seoul
+      DB_PASSWORD: qwer1234
+      DB_HOST: db
+      DB_DATABASE: seoul_postgres
+      DB_PORT: 5432
+      DB_SSL: "false"
+      SERVER_PORT: 3001
+      JWT_SECRET: seoul-spice-secret-change-in-production
+      NODE_ENV: development
+      VITE_API_URL: http://localhost:3001
+      FRONTEND_URL: http://localhost:5173
+    ports:
+      - "5173:5173"
+      - "3001:3001"
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - /app/server/node_modules
+    command: sh -c "npm run db:setup --prefix server && npm run dev"
+
+volumes:
+  pgdata:

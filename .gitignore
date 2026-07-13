@@ -1,6 +1,6 @@
 # Dependencies
 node_modules/
-**/node_modules/
+playwright-tests/node_modules/
 
 # Environment
 .env
@@ -17,5 +17,5 @@ test-results/
 # Logs
 *.log
 
-# VS Code
+# VS Code (optional)
 .vscode/

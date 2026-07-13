@@ -4,9 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "client": "vite --host",
-    "server": "npm run dev --prefix server",
-    "dev": "concurrently -n CLIENT,SERVER -c blue,green \"npm run client\" \"npm run server\"",
+    "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview"
@@ -94,5 +92,4 @@
   "bugs": {
     "url": "https://github.com/Gokul-Ganesh/Seoul/issues"
   },
-  "homepage": "https://github.com/Gokul-Ganesh/Seoul#readme"
-}
+  "homepage": "https://github.com/Gokul-Ganesh/Seoul#
