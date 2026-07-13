@@ -2,8 +2,10 @@ pipeline {
     agent any
 
     environment {
-        IMAGE_NAME = "seoul-spice-app"
-        IMAGE_TAG  = "${env.GIT_COMMIT.take(7)}"
+        DOCKERHUB_USER = "joshwa03"
+        IMAGE_NAME     = "seoul-spice"
+        IMAGE_TAG      = "${env.GIT_COMMIT.take(7)}"
+        FULL_IMAGE     = "${DOCKERHUB_USER}/${IMAGE_NAME}"
     }
 
     stages {
@@ -13,21 +15,25 @@ pipeline {
             }
         }
 
-        stage('List Files') {
-            steps {
-                sh 'ls -la'
-            }
-        }
-
         stage('Build Docker Image') {
             steps {
-                sh "docker build -t ${IMAGE_NAME}:${IMAGE_TAG} -t ${IMAGE_NAME}:latest ."
+                sh "docker build -t ${FULL_IMAGE}:${IMAGE_TAG} -t ${FULL_IMAGE}:latest ."
             }
         }
 
-        stage('Show Image') {
+        stage('Push to Docker Hub') {
             steps {
-                sh "docker images | grep ${IMAGE_NAME}"
+                withCredentials([usernamePassword(
+                    credentialsId: 'dockerhub-creds',
+                    usernameVariable: 'DOCKER_USER',
+                    passwordVariable: 'DOCKER_PASS'
+                )]) {
+                    sh """
+                        echo \$DOCKER_PASS | docker login -u \$DOCKER_USER --password-stdin
+                        docker push ${FULL_IMAGE}:${IMAGE_TAG}
+                        docker push ${FULL_IMAGE}:latest
+                    """
+                }
             }
         }
     }
