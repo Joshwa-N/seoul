@@ -1,9 +1,7 @@
 FROM node:20-alpine
 
-RUN apk update && apk upgrade --no-cache
-
-# Update npm itself to patch vulnerabilities in its bundled dependencies
-RUN npm install -g npm@latest
+RUN apk update && apk upgrade --no-cache && \
+    npm install -g npm@latest
 
 WORKDIR /app
 
