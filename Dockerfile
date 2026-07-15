@@ -1,5 +1,9 @@
 FROM node:20-alpine
 
+# Always pull the latest Alpine security patches at build time
+# This keeps OS-level packages (like libssl3/libcrypto3) patched on every build
+RUN apk update && apk upgrade --no-cache
+
 WORKDIR /app
 
 # Install root deps (client + concurrently)
