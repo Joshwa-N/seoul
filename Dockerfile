@@ -1,5 +1,6 @@
 FROM node:20-alpine
 
+ARG APK_CACHE_BUST=unknown
 RUN apk update && apk upgrade --no-cache && \
     npm install -g npm@11
 
