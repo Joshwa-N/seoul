@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 import { Search, Eye, ShoppingCart } from 'lucide-react';
 import { getOrders, updateOrderStatus } from '@/lib/store';
 import type { Order } from '@/lib/store';

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 import { Store, Eye, EyeOff, Lock, Mail } from 'lucide-react';
 import { useAdminAuth } from '@/admin/context/AdminAuthContext';
 

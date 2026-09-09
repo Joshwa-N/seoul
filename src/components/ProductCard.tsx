@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 import { Heart, ShoppingBag, Star } from 'lucide-react';
 import { toast } from 'sonner';
 import type { Product } from '@/types';
