@@ -95,5 +95,8 @@
   "bugs": {
     "url": "https://github.com/Gokul-Ganesh/Seoul/issues"
   },
-  "homepage": "https://github.com/Gokul-Ganesh/Seoul#readme"
+  "homepage": "https://github.com/Gokul-Ganesh/Seoul#readme",
+  "overrides": {
+    "js-yaml": "4.3.2"
+  }
 }
