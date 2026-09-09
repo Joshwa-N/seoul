@@ -6,6 +6,7 @@ pipeline {
         IMAGE_NAME     = "seoul-spice"
         IMAGE_TAG      = "${env.GIT_COMMIT.take(7)}"
         FULL_IMAGE     = "${DOCKERHUB_USER}/${IMAGE_NAME}"
+        EC2_HOST       = "ubuntu@13.50.210.65"
     }
 
     stages {
@@ -67,6 +68,21 @@ pipeline {
                         echo \$DOCKER_PASS | docker login -u \$DOCKER_USER --password-stdin
                         docker push ${FULL_IMAGE}:${IMAGE_TAG}
                         docker push ${FULL_IMAGE}:latest
+                    """
+                }
+            }
+        }
+
+        stage('Deploy to EC2') {
+            steps {
+                sshagent(['ec2-ssh-key']) {
+                    sh """
+                        ssh -o StrictHostKeyChecking=no ${EC2_HOST} '
+                        cd ~/seoul &&
+                        sed -i "s|image: ${FULL_IMAGE}:.*|image: ${FULL_IMAGE}:${IMAGE_TAG}|" docker-compose.yaml &&
+                        docker compose pull &&
+                        docker compose up -d --force-recreate
+                        '
                     """
                 }
             }
