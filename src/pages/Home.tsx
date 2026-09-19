@@ -22,13 +22,120 @@ export default function Home() {
   const sectionsRef = useRef<(HTMLElement | null)[]>([]);
 
   useEffect(() => {
+    let removeHeroMouseMove = () => {};
     const ctx = gsap.context(() => {
       // Hero animation
-      gsap.fromTo(
-        '.hero-content',
-        { opacity: 0, y: 40 },
-        { opacity: 1, y: 0, duration: 1, ease: 'power3.out', delay: 0.3 }
-      );
+      const prefersReducedMotion = window.matchMedia(
+        '(prefers-reduced-motion: reduce)'
+      ).matches;
+      const hero = heroRef.current;
+
+      const bg = hero?.querySelector<HTMLDivElement>('.hero-bg') ?? null;
+      const badge = hero?.querySelector<HTMLDivElement>('.hero-badge') ?? null;
+      const words = hero?.querySelectorAll<HTMLElement>('.hero-word') ?? null;
+      const desc = hero?.querySelector<HTMLParagraphElement>('.hero-desc') ?? null;
+      const buttons = hero?.querySelectorAll<HTMLElement>('.hero-buttons > *') ?? null;
+      const imageWrap = hero?.querySelector<HTMLDivElement>('.hero-image-wrap') ?? null;
+      const ratingCard = hero?.querySelector<HTMLDivElement>('.hero-rating-card') ?? null;
+      const star = hero?.querySelector<SVGSVGElement>('.hero-star') ?? null;
+      const scrollIndicator = hero?.querySelector<HTMLButtonElement>(
+        '.hero-scroll-indicator'
+      ) ?? null;
+
+      if (prefersReducedMotion) {
+        gsap.set([badge, words, desc, buttons, imageWrap, ratingCard, scrollIndicator], {
+          clearProps: 'all',
+          opacity: 1,
+        });
+      } else {
+        const tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
+        tl.from(badge, { y: 18, opacity: 0, duration: 0.6, delay: 0.2 })
+          .from(words, { y: 44, opacity: 0, duration: 0.7, stagger: 0.12 }, '-=0.25')
+          .from(desc, { y: 18, opacity: 0, duration: 0.6 }, '-=0.4')
+          .from(buttons, { y: 18, opacity: 0, duration: 0.5, stagger: 0.12 }, '-=0.35')
+          .from(imageWrap, { opacity: 0, scale: 0.93, x: 36, duration: 1.05 }, '-=0.85')
+          .from(ratingCard, { opacity: 0, y: 22, scale: 0.9, duration: 0.6 }, '-=0.45')
+          .from(scrollIndicator, { opacity: 0, y: -10, duration: 0.5 }, '-=0.2');
+
+        // Idle micro-animations
+        gsap.to(ratingCard, {
+          y: '+=8',
+          duration: 2.4,
+          repeat: -1,
+          yoyo: true,
+          ease: 'sine.inOut',
+          delay: 1.6,
+        });
+        if (star) {
+          gsap.to(star, {
+            scale: 1.15,
+            transformOrigin: 'center',
+            duration: 1,
+            repeat: -1,
+            yoyo: true,
+            ease: 'sine.inOut',
+            delay: 1.8,
+          });
+        }
+        gsap.to(scrollIndicator, {
+          y: '+=6',
+          duration: 1.4,
+          repeat: -1,
+          yoyo: true,
+          ease: 'sine.inOut',
+        });
+
+        // Very subtle animated background gradient drift
+        if (bg) {
+          gsap.to(bg, {
+            backgroundPosition: '100% 60%',
+            duration: 16,
+            repeat: -1,
+            yoyo: true,
+            ease: 'sine.inOut',
+          });
+        }
+
+        // Very subtle mouse parallax
+        const quick = {
+          bgX: gsap.quickTo(bg, 'x', { duration: 1.6, ease: 'power3.out' }),
+          bgY: gsap.quickTo(bg, 'y', { duration: 1.6, ease: 'power3.out' }),
+          imageX: gsap.quickTo(imageWrap, 'x', { duration: 1, ease: 'power3.out' }),
+          imageY: gsap.quickTo(imageWrap, 'y', { duration: 1, ease: 'power3.out' }),
+          ratingX: gsap.quickTo(ratingCard, 'x', { duration: 1.2, ease: 'power3.out' }),
+          ratingY: gsap.quickTo(ratingCard, 'y', { duration: 1.2, ease: 'power3.out' }),
+        };
+        const handleHeroMouseMove = (e: MouseEvent) => {
+          const { innerWidth, innerHeight } = window;
+          const relX = (e.clientX / innerWidth - 0.5) * 2;
+          const relY = (e.clientY / innerHeight - 0.5) * 2;
+          quick.bgX(relX * 14);
+          quick.bgY(relY * 14);
+          quick.imageX(relX * 12);
+          quick.imageY(relY * 8);
+          quick.ratingX(relX * 18);
+          quick.ratingY(relY * 10);
+        };
+        hero?.addEventListener('mousemove', handleHeroMouseMove);
+        removeHeroMouseMove = () =>
+          hero?.removeEventListener('mousemove', handleHeroMouseMove);
+
+        // Smooth scroll-out parallax as the hero leaves the viewport
+        ScrollTrigger.create({
+          trigger: hero,
+          start: 'top top',
+          end: 'bottom top',
+          scrub: true,
+          onUpdate: (self) => {
+            const p = self.progress;
+            gsap.set(imageWrap, {
+              y: p * -30,
+              scale: 1 - p * 0.05,
+              opacity: 1 - p * 0.6,
+            });
+          },
+        });
+      }
 
       // Section animations
       sectionsRef.current.forEach((section) => {
@@ -53,8 +160,20 @@ export default function Home() {
       });
     });
 
-    return () => ctx.revert();
+    return () => {
+      removeHeroMouseMove();
+      ctx.revert();
+    };
   }, []);
+
+  const scrollToNext = () => {
+    const next = sectionsRef.current[0];
+    if (next) {
+      next.scrollIntoView({ behavior: 'smooth' });
+    } else {
+      window.scrollTo({ top: window.innerHeight, behavior: 'smooth' });
+    }
+  };
 
   const handleNewsletterSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -74,7 +193,7 @@ export default function Home() {
         className="relative min-h-screen flex items-center justify-center overflow-hidden"
       >
         {/* Background Gradient */}
-        <div className="absolute inset-0 bg-gradient-to-br from-[#A8DADC]/30 via-[#F8F9FA] to-[#F4A261]/20" />
+        <div className="hero-bg absolute inset-0 bg-gradient-to-br from-[#A8DADC]/30 via-[#F8F9FA] to-[#F4A261]/20 bg-[length:140%_140%]" />
         
         {/* Decorative Elements */}
         <div className="absolute top-20 left-10 w-64 h-64 bg-[#A8DADC]/20 rounded-full blur-3xl" />
@@ -83,40 +202,48 @@ export default function Home() {
         <div className="hero-content relative z-10 section-padding w-full">
           <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-12 items-center">
             <div className="text-center lg:text-left">
-              <span className="inline-block px-4 py-2 bg-[#A8DADC]/30 text-[#1D3557] text-sm font-medium rounded-full mb-6">
-                New Collection 2024
+              <span className="hero-badge inline-block px-4 py-2 bg-[#A8DADC]/30 text-[#1D3557] text-sm font-medium rounded-full mb-6">
+                New Collection 2026
               </span>
               <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold text-[#1D3557] leading-tight mb-6">
-                SEOUL
-                <span className="text-[#F4A261]"> & </span>
-                SPICE
+                <span className="hero-word inline-block">SEOUL</span>
+                <span className="hero-word inline-block text-[#F4A261]"> &amp; </span>
+                <span className="hero-word inline-block">SPICE</span>
               </h1>
-              <p className="text-lg text-[#6C757D] mb-8 max-w-md mx-auto lg:mx-0">
+              <p className="hero-desc text-lg text-[#6C757D] mb-8 max-w-md mx-auto lg:mx-0">
                 Where Korean minimalism meets Indian warmth. Discover curated lifestyle products for the modern soul.
               </p>
-              <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
-                <Link to="/products" className="btn-primary inline-flex items-center justify-center gap-2">
+              <div className="hero-buttons flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
+                <Link
+                  to="/products"
+                  className="btn-primary group inline-flex items-center justify-center gap-2 transition-transform duration-300 hover:scale-[1.03]"
+                >
                   Shop Now
-                  <ArrowRight className="w-4 h-4" />
+                  <ArrowRight className="w-4 h-4 transition-transform duration-300 group-hover:translate-x-1" />
                 </Link>
-                <Link to="/collections" className="btn-secondary inline-flex items-center justify-center">
+                <Link
+                  to="/collections"
+                  className="btn-secondary inline-flex items-center justify-center transition-all duration-300 hover:-translate-y-0.5"
+                >
                   Explore Collections
                 </Link>
               </div>
             </div>
             
             <div className="relative hidden lg:block">
-              <div className="relative aspect-[3/4] max-w-md mx-auto">
-                <img
-                  src="/images/hero-model.jpg"
-                  alt="SEOUL & SPICE Lifestyle"
-                  className="w-full h-full object-cover rounded-3xl shadow-2xl"
-                />
+              <div className="hero-image-wrap group relative aspect-[3/4] max-w-md mx-auto">
+                <div className="w-full h-full overflow-hidden rounded-3xl shadow-2xl">
+                  <img
+                    src="/images/hero-model.jpg"
+                    alt="SEOUL & SPICE Lifestyle"
+                    className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+                  />
+                </div>
                 {/* Floating Card */}
-                <div className="absolute -bottom-6 -left-6 bg-white p-4 rounded-2xl shadow-xl">
+                <div className="hero-rating-card absolute -bottom-6 -left-6 bg-white p-4 rounded-2xl shadow-xl">
                   <div className="flex items-center gap-3">
                     <div className="w-12 h-12 bg-[#A8DADC]/30 rounded-full flex items-center justify-center">
-                      <Star className="w-6 h-6 text-[#F4A261] fill-[#F4A261]" />
+                      <Star className="hero-star w-6 h-6 text-[#F4A261] fill-[#F4A261]" />
                     </div>
                     <div>
                       <p className="font-semibold text-[#1D3557]">4.9 Rating</p>
@@ -130,11 +257,16 @@ export default function Home() {
         </div>
 
         {/* Scroll Indicator */}
-        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-bounce">
-          <div className="w-6 h-10 border-2 border-[#1D3557]/30 rounded-full flex justify-center pt-2">
+        <button
+          type="button"
+          onClick={scrollToNext}
+          aria-label="Scroll to next section"
+          className="hero-scroll-indicator absolute bottom-8 left-1/2 -translate-x-1/2 cursor-pointer"
+        >
+          <div className="w-6 h-10 border-2 border-[#1D3557]/30 rounded-full flex justify-center pt-2 transition-colors duration-300 hover:border-[#1D3557]/60">
             <div className="w-1.5 h-3 bg-[#1D3557]/50 rounded-full" />
           </div>
-        </div>
+        </button>
       </section>
 
       {/* Features Bar */}

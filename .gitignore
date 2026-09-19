@@ -18,4 +18,9 @@ test-results/
 *.log
 
 # VS Code (optional)
-.vscode/
+.vscode/server/.env
+*.bak
+*.pre_ts_fix
+tsc_errors.txt
+auth_*.txt
+.env

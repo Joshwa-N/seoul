@@ -17,6 +17,12 @@ async function setup() {
     )
   `);
 
+  await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS phone VARCHAR(50)`);
+  await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS address JSONB DEFAULT '{}'::jsonb`);
+  await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS reset_token VARCHAR(255)`);
+  await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS reset_token_expires TIMESTAMPTZ`);
+  await query(`CREATE UNIQUE INDEX IF NOT EXISTS users_email_lower_idx ON users (LOWER(email))`);
+
   // ─── Categories ───────────────────────────────────────────────────────────
   await query(`
     CREATE TABLE IF NOT EXISTS categories (

@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "type": "commonjs",
   "scripts": {
-    "dev": "nodemon --exec ts-node index.ts",
+    "dev": "nodemon --legacy-watch --exec ts-node index.ts",
     "db:setup": "ts-node db/setup.ts"
   },
   "dependencies": {

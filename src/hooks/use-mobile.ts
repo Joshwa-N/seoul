@@ -70,3 +70,20 @@ export function getMaxCartQty(stock: number | undefined): number {
   if (stock === undefined) return 99;
   return Math.max(0, stock);
 }
+
+// ─── useIsMobile (used by components/ui/sidebar.tsx) ─────────────────────────
+const MOBILE_BREAKPOINT = 768;
+
+export function useIsMobile(): boolean {
+  const [isMobile, setIsMobile] = useState<boolean | undefined>(undefined);
+
+  useEffect(() => {
+    const mql = window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT - 1}px)`);
+    const onChange = () => setIsMobile(window.innerWidth < MOBILE_BREAKPOINT);
+    mql.addEventListener('change', onChange);
+    setIsMobile(window.innerWidth < MOBILE_BREAKPOINT);
+    return () => mql.removeEventListener('change', onChange);
+  }, []);
+
+  return !!isMobile;
+}

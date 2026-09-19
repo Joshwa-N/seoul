@@ -8,10 +8,11 @@ const router = Router();
 
 // ─── Admin Login ───────────────────────────────────────────────────────────
 router.post('/login', async (req: Request, res: Response) => {
-  const { email, password } = req.body;
+  const { email: rawEmail, password } = req.body;
+  const email = String(rawEmail || '').trim().toLowerCase();
   if (!email || !password) { res.status(400).json({ error: 'Email and password required' }); return; }
   try {
-    const result = await query(`SELECT * FROM users WHERE email = $1`, [email]);
+    const result = await query(`SELECT * FROM users WHERE LOWER(email) = $1`, [email]);
     if (result.rows.length === 0) { res.status(401).json({ error: 'Invalid credentials' }); return; }
     const user = result.rows[0];
     const valid = await bcrypt.compare(password, user.password_hash);
@@ -24,11 +25,12 @@ router.post('/login', async (req: Request, res: Response) => {
 
 // ─── Customer Register ─────────────────────────────────────────────────────
 router.post('/register', async (req: Request, res: Response) => {
-  const { name, email, password, phone, address } = req.body;
+  const { name, email: rawEmail, password, phone, address } = req.body;
+  const email = String(rawEmail || '').trim().toLowerCase();
   if (!name || !email || !password) { res.status(400).json({ error: 'Name, email and password are required' }); return; }
   if (password.length < 6) { res.status(400).json({ error: 'Password must be at least 6 characters' }); return; }
   try {
-    const existing = await query(`SELECT id FROM users WHERE email = $1`, [email]);
+    const existing = await query(`SELECT id FROM users WHERE LOWER(email) = $1`, [email]);
     if (existing.rows.length > 0) { res.status(409).json({ error: 'Email already registered' }); return; }
     const passwordHash = await bcrypt.hash(password, 12);
     const result = await query(
@@ -45,10 +47,11 @@ router.post('/register', async (req: Request, res: Response) => {
 
 // ─── Customer Login ────────────────────────────────────────────────────────
 router.post('/customer-login', async (req: Request, res: Response) => {
-  const { email, password } = req.body;
+  const { email: rawEmail, password } = req.body;
+  const email = String(rawEmail || '').trim().toLowerCase();
   if (!email || !password) { res.status(400).json({ error: 'Email and password required' }); return; }
   try {
-    const result = await query(`SELECT * FROM users WHERE email = $1`, [email]);
+    const result = await query(`SELECT * FROM users WHERE LOWER(email) = $1`, [email]);
     if (result.rows.length === 0) { res.status(401).json({ error: 'Invalid credentials' }); return; }
     const user = result.rows[0];
     const valid = await bcrypt.compare(password, user.password_hash);
@@ -88,17 +91,18 @@ router.put('/profile', requireAuth, async (req: AuthRequest, res: Response) => {
 
 // ─── Forgot Password ───────────────────────────────────────────────────────
 router.post('/forgot-password', async (req: Request, res: Response) => {
-  const { email } = req.body;
+  const { email: rawEmail } = req.body;
+  const email = String(rawEmail || '').trim().toLowerCase();
   if (!email) { res.status(400).json({ error: 'Email required' }); return; }
   try {
-    const result = await query(`SELECT id FROM users WHERE email = $1`, [email]);
+    const result = await query(`SELECT id FROM users WHERE LOWER(email) = $1`, [email]);
     if (result.rows.length === 0) {
       res.json({ message: 'If that email exists, a reset link has been sent.' }); return;
     }
     const token = crypto.randomBytes(32).toString('hex');
     const expires = new Date(Date.now() + 1000 * 60 * 60); // 1 hour
     await query(
-      `UPDATE users SET reset_token=$1, reset_token_expires=$2 WHERE email=$3`,
+      `UPDATE users SET reset_token=$1, reset_token_expires=$2 WHERE LOWER(email)=$3`,
       [token, expires, email]
     );
     // TODO: send real email in production. Dev: token logged to console.

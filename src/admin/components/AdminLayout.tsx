@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router';
 import {
-  LayoutDashboard, Package, ShoppingCart, Users, Tag, BarChart3,
+  LayoutDashboard, Package, ShoppingCart, Tag, BarChart3,
   Settings, LogOut, Menu, X, Bell, ChevronRight, Store
 } from 'lucide-react';
 import { useAdminAuth } from '@/admin/context/AdminAuthContext';

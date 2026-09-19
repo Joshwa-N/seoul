@@ -257,7 +257,7 @@ export default function Navigation() {
                         {searchResults.map((product) => (
                           <button key={product.id} onClick={() => handleResultClick(product.id)}
                             className="w-full flex items-center gap-4 px-2 py-2 rounded-xl hover:bg-[#F8F9FA] transition-colors text-left">
-                            <img src={product.images?.[0] || product.image} alt={product.name} className="w-12 h-12 object-cover rounded-lg flex-shrink-0" />
+                            <img src={product.image} alt={product.name} className="w-12 h-12 object-cover rounded-lg flex-shrink-0" />
                             <div className="flex-1 min-w-0">
                               <p className="font-medium text-[#1D3557] truncate">{product.name}</p>
                               <p className="text-sm text-[#6C757D]">{product.category}</p>
