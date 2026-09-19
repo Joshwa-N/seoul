@@ -1,7 +1,8 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'seoul-spice-secret-key-change-in-production';
+const JWT_SECRET = process.env.JWT_SECRET || (process.env.NODE_ENV === 'production' ? '' : 'dev-only-secret');
+if (!JWT_SECRET) throw new Error('JWT_SECRET must be set in production');
 
 export interface AuthRequest extends Request {
   user?: { id: number; email: string; role: string; name: string };

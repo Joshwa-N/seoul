@@ -4,7 +4,9 @@
   "type": "commonjs",
   "scripts": {
     "dev": "nodemon --legacy-watch --exec ts-node index.ts",
-    "db:setup": "ts-node db/setup.ts"
+    "db:setup": "ts-node db/setup.ts",
+    "build": "tsc",
+    "start": "node dist/index.js"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",

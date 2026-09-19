@@ -1,35 +1,46 @@
-import { Pool } from 'pg';
+import { Pool, type PoolConfig } from 'pg';
 import dotenv from 'dotenv';
 import path from 'path';
 
-// Always load server/.env by absolute path — independent of the
-// directory this process happens to be started from (npm run dev,
-// nodemon, ts-node, a deploy script, etc. can all have different CWDs).
+// Load server/.env by absolute path (local dev). On a host, real env vars are used.
 dotenv.config({ path: path.resolve(__dirname, '..', '.env') });
 
-const required = ['DB_USERNAME', 'DB_DATABASE'] as const;
-const missing = required.filter((key) => !process.env[key]);
-if (missing.length > 0) {
-  throw new Error(
-    `Missing required env var(s): ${missing.join(', ')}. ` +
-    `Check that server/.env exists and is populated (see server/.env.example).`
-  );
+const databaseUrl = process.env.DATABASE_URL;
+
+if (!databaseUrl) {
+  const required = ['DB_USERNAME', 'DB_DATABASE'] as const;
+  const missing = required.filter((key) => !process.env[key]);
+  if (missing.length > 0) {
+    throw new Error(
+      `Missing required env var(s): ${missing.join(', ')}. ` +
+      `Set DATABASE_URL, or DB_USERNAME/DB_DATABASE (see server/.env.example).`
+    );
+  }
 }
 
-console.log('DB config:', {
-  user: process.env.DB_USERNAME,
-  database: process.env.DB_DATABASE,
-  host: process.env.DB_HOST,
-});
+// Hosted Postgres needs SSL. Local Postgres doesn't.
+// DB_SSL=true/false overrides; a DATABASE_URL turns SSL on by default.
+const useSsl = process.env.DB_SSL
+  ? process.env.DB_SSL === 'true'
+  : Boolean(databaseUrl);
+const ssl = useSsl ? { rejectUnauthorized: false } : false;
 
-export const pool = new Pool({
-  user: process.env.DB_USERNAME,
-  password: process.env.DB_PASSWORD || undefined,
-  host: process.env.DB_HOST || 'localhost',
-  database: process.env.DB_DATABASE,
-  port: parseInt(process.env.DB_PORT || '5432'),
-  ssl: false,
-});
+console.log('DB config:', databaseUrl
+  ? { mode: 'DATABASE_URL', ssl: useSsl }
+  : { mode: 'discrete', host: process.env.DB_HOST || 'localhost', database: process.env.DB_DATABASE, ssl: useSsl });
+
+const config: PoolConfig = databaseUrl
+  ? { connectionString: databaseUrl, ssl }
+  : {
+      user: process.env.DB_USERNAME,
+      password: process.env.DB_PASSWORD || undefined,
+      host: process.env.DB_HOST || 'localhost',
+      database: process.env.DB_DATABASE,
+      port: parseInt(process.env.DB_PORT || '5432'),
+      ssl,
+    };
+
+export const pool = new Pool(config);
 
 export async function query(text: string, params?: unknown[]) {
   return pool.query(text, params);
