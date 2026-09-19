@@ -9,7 +9,7 @@ export default function AdminLogin() {
   const [showPw, setShowPw] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const { login } = useAdminAuth();
+  const { login, error: authError } = useAdminAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -21,7 +21,7 @@ export default function AdminLogin() {
     if (ok) {
       navigate('/admin');
     } else {
-      setError('Invalid email or password');
+      setError('');
     }
     setLoading(false);
   };
@@ -41,9 +41,9 @@ export default function AdminLogin() {
         <div className="bg-white rounded-2xl p-8 shadow-2xl">
           <h2 className="text-xl font-bold text-gray-900 mb-6">Sign in</h2>
 
-          {error && (
+          {(error || authError) && (
             <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm">
-              {error}
+              {error || authError}
             </div>
           )}
 

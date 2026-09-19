@@ -2,6 +2,9 @@ import { createContext, useContext, useState, type ReactNode } from 'react';
 
 const BASE_URL = (import.meta.env.VITE_API_URL || 'http://localhost:3001') + '/api';
 
+// Production build with no API configured (e.g. a Vercel preview): browser-only demo login.
+const DEMO_MODE = import.meta.env.PROD && !import.meta.env.VITE_API_URL;
+
 interface AdminSession { id: string | number; name: string; role: string; }
 interface AdminAuthContextType {
   session: AdminSession | null;
@@ -21,6 +24,17 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
 
   const login = async (email: string, password: string): Promise<boolean> => {
     setError(null);
+    if (DEMO_MODE) {
+      if (email.trim().toLowerCase() === 'admin@seoulspice.com' && password === 'admin123') {
+        const demo = { id: 'admin_001', name: 'Admin User', role: 'admin' };
+        sessionStorage.setItem('ss_admin_token', 'demo-token');
+        sessionStorage.setItem('ss_admin_session', JSON.stringify(demo));
+        setSession(demo);
+        return true;
+      }
+      setError('Invalid email or password');
+      return false;
+    }
     try {
       const res = await fetch(`${BASE_URL}/auth/login`, {
         method: 'POST',
