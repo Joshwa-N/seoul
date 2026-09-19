@@ -12,7 +12,7 @@ import analyticsRouter from './routes/analytics';
 import categoriesRouter from './routes/categories';
 
 const app = express();
-const PORT = process.env.SERVER_PORT || 3001;
+const PORT = Number(process.env.PORT || process.env.SERVER_PORT) || 3001;
 
 const allowedOrigins = (process.env.FRONTEND_URL || 'http://localhost:5173')
   .split(',')
