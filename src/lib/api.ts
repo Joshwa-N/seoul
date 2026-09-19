@@ -1,8 +1,9 @@
+import { API_BASE } from '@/lib/apiBase';
 // ─── API Client ───────────────────────────────────────────────────────────────
 // Central HTTP client for all backend communication.
 // Replaces localStorage-based store.ts for production use.
 
-const BASE_URL = (import.meta.env.VITE_API_URL || 'http://localhost:3001') + '/api';
+const BASE_URL = (import.meta.env.VITE_API_URL || `${API_BASE}`) + '/api';
 
 // ─── Token management ─────────────────────────────────────────────────────────
 export function getToken(): string | null {

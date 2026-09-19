@@ -1,3 +1,4 @@
+import { API_BASE } from '@/lib/apiBase';
 import { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router';
 import {
@@ -75,7 +76,7 @@ export default function Login() {
     setIsLoading(true);
     try {
       const res = await fetch(
-        `${import.meta.env.VITE_API_URL || 'http://localhost:3001'}/api/auth/forgot-password`,
+        `${import.meta.env.VITE_API_URL || `${API_BASE}`}/api/auth/forgot-password`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },

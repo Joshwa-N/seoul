@@ -1,3 +1,4 @@
+import { API_BASE } from '@/lib/apiBase';
 import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
 
 interface Address {
@@ -36,7 +37,7 @@ interface AuthContextType {
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
-const API = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+const API = import.meta.env.VITE_API_URL || `${API_BASE}`;
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);

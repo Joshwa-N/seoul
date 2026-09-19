@@ -1,6 +1,7 @@
+import { API_BASE } from '@/lib/apiBase';
 import { createContext, useContext, useState, type ReactNode } from 'react';
 
-const BASE_URL = (import.meta.env.VITE_API_URL || 'http://localhost:3001') + '/api';
+const BASE_URL = (import.meta.env.VITE_API_URL || `${API_BASE}`) + '/api';
 
 // Production build with no API configured (e.g. a Vercel preview): browser-only demo login.
 const DEMO_MODE = import.meta.env.PROD && (!import.meta.env.VITE_API_URL || /localhost|127\.0\.0\.1/.test(import.meta.env.VITE_API_URL));
