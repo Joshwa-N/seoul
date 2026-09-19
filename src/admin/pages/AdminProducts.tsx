@@ -2,6 +2,27 @@ import { useState, useEffect, useCallback } from 'react';
 import { Plus, Search, Pencil, Trash2, AlertTriangle, Package, RefreshCw } from 'lucide-react';
 import { productsApi, type ApiProduct } from '@/lib/api';
 import { toast } from 'sonner';
+import { initializeStore, getProducts, saveProduct, deleteProduct } from '@/lib/store';
+
+// Production build with no API configured (e.g. Vercel): use the browser store instead of the API.
+const DEMO_MODE = import.meta.env.PROD && !import.meta.env.VITE_API_URL;
+
+function demoSave(p: Partial<ApiProduct> & { id?: number }) {
+  const now = new Date().toISOString();
+  const all = getProducts();
+  type Saved = Parameters<typeof saveProduct>[0];
+  if (p.id && p.id > 0) {
+    const existing = all.find((x) => x.id === p.id);
+    saveProduct({ ...existing, ...p, updatedAt: now } as unknown as Saved);
+  } else {
+    const nextId = all.reduce((m, x) => Math.max(m, x.id), 0) + 1;
+    saveProduct({
+      stock: 0, status: 'active', salesCount: 0,
+      sku: 'SKU-' + String(nextId).padStart(3, '0'),
+      ...p, id: nextId, createdAt: now, updatedAt: now,
+    } as unknown as Saved);
+  }
+}
 
 type StoreProduct = ApiProduct & { stock: number; sku: string; status: 'active' | 'draft' | 'archived'; salesCount: number; createdAt: string; updatedAt: string; };
 
@@ -25,6 +46,11 @@ export default function AdminProducts() {
   const refresh = useCallback(async () => {
     setLoading(true);
     try {
+      if (DEMO_MODE) {
+        initializeStore();
+        setProducts(getProducts() as unknown as StoreProduct[]);
+        return;
+      }
       const { products: active } = await productsApi.getAll({});
       const { products: draft } = await productsApi.getAll({ status: 'draft' }).catch(() => ({ products: [] }));
       const { products: archived } = await productsApi.getAll({ status: 'archived' }).catch(() => ({ products: [] }));
@@ -51,7 +77,7 @@ export default function AdminProducts() {
 
   const handleDelete = async (id: number) => {
     try {
-      await productsApi.delete(id);
+      if (DEMO_MODE) deleteProduct(id); else await productsApi.delete(id);
       toast.success('Product deleted');
       setShowDeleteModal(null);
       refresh();
@@ -64,10 +90,10 @@ export default function AdminProducts() {
     setSaving(true);
     try {
       if (p.id && p.id > 0) {
-        await productsApi.update(p.id, p);
+        if (DEMO_MODE) demoSave(p); else await productsApi.update(p.id, p);
         toast.success('Product updated');
       } else {
-        await productsApi.create(p);
+        if (DEMO_MODE) demoSave(p); else await productsApi.create(p);
         toast.success('Product created');
       }
       setShowEditModal(null);
