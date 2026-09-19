@@ -5,7 +5,7 @@ import { toast } from 'sonner';
 import { initializeStore, getProducts, saveProduct, deleteProduct } from '@/lib/store';
 
 // Production build with no API configured (e.g. Vercel): use the browser store instead of the API.
-const DEMO_MODE = import.meta.env.PROD && !import.meta.env.VITE_API_URL;
+const DEMO_MODE = import.meta.env.PROD && (!import.meta.env.VITE_API_URL || /localhost|127\.0\.0\.1/.test(import.meta.env.VITE_API_URL));
 
 function demoSave(p: Partial<ApiProduct> & { id?: number }) {
   const now = new Date().toISOString();
